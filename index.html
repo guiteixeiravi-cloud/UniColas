@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>União Embalagens - Links Úteis</title>
+    
+    <!-- Tailwind CSS com configuração de Dark Mode -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    
+    <!-- Font Awesome CSS (Ícones) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        .copy-card {
+            perspective: 1000px;
+        }
+        
+        .title-container {
+            transition: opacity 0.3s ease-in-out;
+            opacity: 1;
+        }
+
+        .info-container {
+            transition: opacity 0.3s ease-in-out;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .copy-card:hover .title-container {
+            opacity: 0;
+        }
+
+        .copy-card:hover .info-container {
+            opacity: 1;
+        }
+
+        /* Animações do Toast Notification */
+        @keyframes toast-enter {
+            from { opacity: 0; transform: translateY(100%) translateX(-50%); }
+            to { opacity: 1; transform: translateY(0) translateX(-50%); }
+        }
+        
+        @keyframes toast-leave {
+            from { opacity: 1; transform: translateY(0) translateX(-50%); }
+            to { opacity: 0; transform: translateY(100%) translateX(-50%); }
+        }
+
+        .toast-notification {
+            animation: toast-enter 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            left: 50%;
+        }
+
+        .toast-notification.leaving {
+            animation: toast-leave 0.3s ease-in forwards;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 transition-colors duration-300 min-h-screen flex flex-col items-center py-12 px-4 font-sans relative">
+
+    <!-- Botão Dark Mode -->
+    <button id="theme-toggle" class="absolute top-6 right-6 p-3 rounded-full bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-yellow-400 hover:bg-gray-300 dark:hover:bg-gray-700 transition-all shadow-md focus:outline-none" aria-label="Alternar Tema Escuro">
+        <i id="theme-icon" class="fa-solid fa-moon text-xl"></i>
+    </button>
+
+    <!-- Logo Section (com fundo branco protetor no modo escuro) -->
+    <div class="mb-12 flex flex-col items-center justify-center dark:bg-white dark:p-4 dark:rounded-2xl dark:shadow-lg transition-all duration-300">
+        <img src="logo.png" alt="União Embalagens Logo" class="h-24 md:h-32 object-contain" onerror="this.onerror=null; this.outerHTML='<div class=\'text-red-600 font-bold text-2xl\'>[Imagem logo.png não encontrada na pasta]</div>';">
+    </div>
+
+    <!-- Grid Container -->
+    <div class="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-4" id="buttons-container">
+        <!-- Os botões serão inseridos aqui pelo JavaScript -->
+    </div>
+
+    <!-- Container do Toast (Fica oculto até ser chamado) -->
+    <div id="toast-container" class="fixed bottom-8 z-50 pointer-events-none flex flex-col gap-3">
+    </div>
+
+    <script>
+        // Lógica do Dark Mode
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const htmlElement = document.documentElement;
+
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            htmlElement.classList.add('dark');
+            themeIcon.classList.replace('fa-moon', 'fa-sun');
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            htmlElement.classList.toggle('dark');
+            if (htmlElement.classList.contains('dark')) {
+                localStorage.theme = 'dark';
+                themeIcon.classList.replace('fa-moon', 'fa-sun');
+            } else {
+                localStorage.theme = 'light';
+                themeIcon.classList.replace('fa-sun', 'fa-moon');
+            }
+        });
+
+        // Dados dos Botões Atualizados
+        const data = [
+            { title: "Whatsapp Vendas", info: "16 99969-4903", icon: "fa-brands fa-whatsapp" },
+            { title: "Whatsapp Compras", info: "16 99232-2820", icon: "fa-solid fa-cart-shopping" },
+            { title: "Whatsapp Financeiro", info: "16 99405-0191", icon: "fa-solid fa-money-bill-wave" },
+            { title: "Endereço Loja", info: "Avenida Nazira Aidar, 5061 - Jd Moema", icon: "fa-solid fa-store" },
+            { title: "Endereço Estoque", info: "Rua Doutor Ivom Rodrigues Pereira, 5078 - Jd Moema", icon: "fa-solid fa-box-open" },
+            { title: "Endereço CD", info: "Rua José Luiz Garcia, 3681, Jd Guanabara", icon: "fa-solid fa-warehouse" },
+            { title: "CNPJ Unigens", info: "51.662.217/0001-06", icon: "fa-solid fa-id-card" },
+            { title: "CNPJ E.L De Carvalho", info: "08.920.840/0001-84", icon: "fa-solid fa-id-card" },
+            { title: "Observação NF SJB", info: "RRF 1,2% - R$: -- CONFORME INSTRUÇÃO NORMATIVA 1234 DE 2012 ARTIGO II PARAGRAFO 6", icon: "fa-solid fa-file-invoice" },
+            { title: "Chave PIX", info: "(16) 99969-4903 - Sicoob - EL De Carvalho", icon: "fa-brands fa-pix" },
+            { title: "Email Licitações", info: "unigenslicitacoes@gmail.com", icon: "fa-solid fa-envelope" }
+        ];
+
+        const container = document.getElementById('buttons-container');
+
+        // Renderiza os botões
+        data.forEach((item) => {
+            const buttonHtml = `
+                <button 
+                    onclick="copyToClipboard('${item.info.replace(/'/g, "\\'")}')"
+                    class="copy-card relative w-full h-24 bg-red-600 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-1 transform transition-all duration-300 overflow-hidden group cursor-pointer focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                    aria-label="Copiar ${item.title}"
+                >
+                    <div class="absolute inset-0 flex flex-col items-center justify-center p-4">
+                        <!-- Título e Ícone -->
+                        <div class="title-container absolute inset-0 flex flex-col items-center justify-center text-white w-full px-2">
+                            <i class="${item.icon} text-3xl mb-2"></i>
+                            <h2 class="text-lg font-bold text-center leading-tight truncate w-full">${item.title}</h2>
+                        </div>
+                        
+                        <!-- Informação a ser copiada -->
+                        <div class="info-container absolute inset-0 flex items-center justify-center text-white w-full px-4">
+                            <p class="info-text text-sm md:text-base font-medium text-center break-words w-full">${item.info}</p>
+                        </div>
+                    </div>
+                </button>
+            `;
+            container.innerHTML += buttonHtml;
+        });
+
+        // Lógica do Toast Notification
+        function showToast(message) {
+            const toastContainer = document.getElementById('toast-container');
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification absolute bottom-0 bg-green-500 text-white px-6 py-3 rounded-full shadow-2xl font-bold flex items-center gap-2 border-2 border-green-400 whitespace-nowrap';
+            toast.innerHTML = `<i class="fa-solid fa-circle-check text-xl"></i> ${message}`;
+            
+            toastContainer.innerHTML = '';
+            toastContainer.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('leaving');
+                toast.addEventListener('animationend', () => {
+                    toast.remove();
+                });
+            }, 2500);
+        }
+
+        // Lógica de cópia
+        function copyToClipboard(textToCopy) {
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            textArea.style.position = "absolute";
+            textArea.style.left = "-999999px";
+            document.body.prepend(textArea);
+            
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast("Copiado com sucesso!");
+            } catch (err) {
+                console.error('Falha ao copiar:', err);
+                alert("Não foi possível copiar automaticamente. Selecione e copie o texto manualmente.");
+            } finally {
+                textArea.remove();
+            }
+        }
+    </script>
+</body>
+</html>
